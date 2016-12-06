@@ -7,10 +7,10 @@ from email import encoders
 
 
 #Email of the Raspberry Pi
-raspaddress = "teamgalaxynoise@gmail.com"
+raspaddress = ""
 
 #User's Email address
-useraddress = "zjabneel@gmail.com"
+useraddress = ""
 
 #Structure of the email
 msg = MIMEMultipart()
@@ -47,7 +47,7 @@ def sendAlert(vidName):
     # Security function needed to connect to the Gmail server to protect the password.
     server.starttls()
     #Password of Raspberry Pi's Email
-    server.login(raspaddress, "P@$$W0RD")
+    server.login(raspaddress, "") #enter your password
     #Sending the email
     text = msg.as_string()
     server.sendmail(raspaddress, useraddress, text)
