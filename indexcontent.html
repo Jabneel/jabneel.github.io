@@ -140,7 +140,8 @@
 	<p><b><H3>Unit Testing</H3></b><br>
 		<p>You can use these programs for testing your Camera and Vibration Sensor if they are working properly.</p>
 	
-	<p> Camera <br> 
+	<p><b> Camera </b><br> 
+		<code><pre>"
 		from picamera import PiCamera
 		from time import sleep
 
@@ -151,9 +152,14 @@
 		sleep(5)
 		camera.stop_recording()
 		camera.stop_preview()
+		"
+		</pre>
+		</code>
+		
 		</p>
 	
-	<p> Vibration Sensor <br>
+	<p><b> Vibration Sensor</b> <br>
+		<code><pre>"
 		from time import sleep
 		import RPi.GPIO as GPIO
 
@@ -166,9 +172,11 @@
         	if result == 1:
             	print("VIbrated")
  	    	sleep(1)   
+		"</pre></code>
 		</p>
 	
-	<p> Or you can just download the files here <a href="Documentation/unit test/camera.py">camera.py</a>
+	<p> Or you can just download the files here 
+	<br><a href="Documentation/unit test/camera.py">camera.py</a>
 	<br><a href="Documentation/unit test/basicSensor.py">basicSensor.py</a></p>
 	
 	<p><b><H3>Production Testing</H3></b><br>
@@ -176,56 +184,56 @@
 		
 		<p>Main program ---testDrive.py<br>
 			<code><pre>"
-			from time import sleep
-			import RPi.GPIO as GPIO
-			import time
-			from picamera import PiCamera
-			from alertnoise import sendAlert
-			from cameraCode import initRecvideo, stopVideo, recVideo
-			import os
+from time import sleep
+import RPi.GPIO as GPIO
+import time
+from picamera import PiCamera
+from alertnoise import sendAlert
+from cameraCode import initRecvideo, stopVideo, recVideo
+import os
 
-			#initRecvideo()
+#initRecvideo()
 
-			# initialize sesnor and leds
-			GPIO.setmode(GPIO.BCM)
-			GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN )
-			GPIO.setmode(GPIO.BCM)
-			GPIO.setwarnings(False)
-			GPIO.setup(18,GPIO.OUT)
-			sleep(1)
-			isTrig = False
+# initialize sesnor and leds
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN )
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(18,GPIO.OUT)
+sleep(1)
+isTrig = False
 
-			def trig():
-			    print "LED on"
-			    GPIO.output(18,GPIO.HIGH)
-			    time.sleep(1)
-			    print "LED off"
-			    GPIO.output(18,GPIO.LOW)
-			    time.sleep(1)
+def trig():
+    print "LED on"
+    GPIO.output(18,GPIO.HIGH)
+    time.sleep(1)
+    print "LED off"
+    GPIO.output(18,GPIO.LOW)
+    time.sleep(1)
 
-			print("Telematics~ running ...");
-			while True:
-				GPIO.output(18,GPIO.HIGH)
+print("Telematics~ running ...");
+while True:
+        GPIO.output(18,GPIO.HIGH)
 
-				if isTrig == True:
-				    trig();
-				    #stopVideo()
-
-				result = GPIO.input(5)
-				if result == 1:
-				    print("Vibrated\n********************************\nRecording Video")
-				    isTrig =True
-				    vidName = time.strftime("%d%m%Y")+time.strftime("%I%M%S")
-				    recVideo(vidName)
-				    sleep(1)
-				    hname = vidName+"video.h264"
-				    mname = vidName+"video.mp4"
-				    print("Converting video file h264 to MP4");
-				    commands = "sudo MP4Box -add" + " "+hname + " " +mname
-				    os.system(commands)
-				    print("Sending video file to email");
-				    sendAlert(vidName)
-				    print("File sent");
+        if isTrig == True:
+            trig();
+            #stopVideo()
+            
+        result = GPIO.input(5)
+        if result == 1:
+            print("Vibrated\n********************************\nRecording Video")
+            isTrig =True
+            vidName = time.strftime("%d%m%Y")+time.strftime("%I%M%S")
+            recVideo(vidName)
+ 	    sleep(1)
+ 	    hname = vidName+"video.h264"
+ 	    mname = vidName+"video.mp4"
+ 	    print("Converting video file h264 to MP4");
+ 	    commands = "sudo MP4Box -add" + " "+hname + " " +mname
+ 	    os.system(commands)
+            print("Sending video file to email");
+ 	    sendAlert(vidName)
+ 	    print("File sent");
 			"</pre></code>
 
 			
@@ -233,92 +241,90 @@
 		<p> <h3>NOTE: make sure to fill the values for raspaddress and useraddress. I removed it for obvious privacy reason.</h3>
 		<br>Program that sends the recorded video file to your email---- alertnoise.py<br>
 		<code><pre>"
-			#Libraries necessary to send email using python
-			import smtplib
-			from email.MIMEMultipart import MIMEMultipart
-			from email.MIMEText import MIMEText
-			from email.MIMEBase import MIMEBase
-			from email import encoders
+#Libraries necessary to send email using python
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEBase import MIMEBase
+from email import encoders
 
 
-			#Email of the Raspberry Pi
-			raspaddress = ""
+#Email of the Raspberry Pi
+raspaddress = ""
 
-			#User's Email address
-			useraddress = ""
+#User's Email address
+useraddress = ""	
 
-			#Structure of the email
-			msg = MIMEMultipart()
-			msg['From'] = raspaddress
-			msg['To'] = useraddress
-			msg['Subject'] = "Aegis Alert Message"
+#Structure of the email
+msg = MIMEMultipart()
+msg['From'] = raspaddress
+msg['To'] = useraddress
+msg['Subject'] = "Aegis Alert Message"
 
 
-			def alert1(vidName):
-			    body1 = "Movement detected in the room \n"
-			    filename = vidName+"video.mp4"
-			    openAtt = "/home/pi/Desktop/Final Presentation/"+filename
-			    attachment = open(openAtt, "rb")
-			    part = MIMEBase('application', 'octet-stream')
-			    part.set_payload((attachment).read())
-			    encoders.encode_base64(part)
-			    part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
-			    msg.attach(part)
-			    return body1
+def alert1(vidName):
+    body1 = "Movement detected in the room \n"
+    filename = vidName+"video.mp4"
+    openAtt = "/home/pi/Desktop/Final Presentation/"+filename
+    attachment = open(openAtt, "rb")
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload((attachment).read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+    msg.attach(part)
+    return body1
 
-			def alert2():
-			    body2 = "Termperature Change Alert \n"
-			    return body2
+def alert2():
+    body2 = "Termperature Change Alert \n"
+    return body2
 
-			def alert3():
-			    body3 = "Smoke Detected \n"
-			    return body3
+def alert3():
+    body3 = "Smoke Detected \n"
+    return body3
 
-			def sendAlert(vidName):    
-			    body = alert1(vidName) 
-			    msg.attach(MIMEText(body, 'plain'))
-			    #Parameters for GMail Server
-			    server = smtplib.SMTP('smtp.gmail.com', 587)
-			    # Security function needed to connect to the Gmail server to protect the password.
-			    server.starttls()
-			    #Password of Raspberry Pi's Email
-			    server.login(raspaddress, "P@$$W0RD")
-			    #Sending the email
-			    text = msg.as_string()
-			    server.sendmail(raspaddress, useraddress, text)
-			    server.quit()
-			 
+def sendAlert(vidName):    
+    body = alert1(vidName) 
+    msg.attach(MIMEText(body, 'plain'))
+    #Parameters for GMail Server
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    # Security function needed to connect to the Gmail server to protect the password.
+    server.starttls()
+    #Password of Raspberry Pi's Email
+    server.login(raspaddress, "P@$$W0RD")
+    #Sending the email
+    text = msg.as_string()
+    server.sendmail(raspaddress, useraddress, text)
+    server.quit()
 			    "</pre>
 		</code>
 
 	<p> Records the video for 20 seconds. Can be adjusted by changing the value of sleep ---cameraCode.py <br>
-		<code><pre>"
-		from picamera import PiCamera
+	<code><pre>"
+from picamera import PiCamera
+from time import sleep
 
-		from time import sleep
+camera = PiCamera()
 
-		camera = PiCamera()
+def initRecvideo():
+        # initialize camera
+        camera = PiCamera()
+        camera.start_preview()
 
-		def initRecvideo():
-			# initialize camera
-			camera = PiCamera()
-			camera.start_preview()
+def stopVideo():
+        camera.stop_preview()
 
-		def stopVideo():
-			camera.stop_preview()
-
-		def recVideo( sNum ):
-			dest = '/home/pi/Desktop/Final Presentation/'+str(sNum)+'video.h264'
-			camera.start_preview()
-			camera.start_recording(dest)
-			sleep(20)
-			camera.stop_recording()
-			camera.stop_preview()
-			return;
-
-		"</pre></code>
+def recVideo( sNum ):
+	dest = '/home/pi/Desktop/Final Presentation/'+str(sNum)+'video.h264'
+	camera.start_preview()
+	camera.start_recording(dest)
+	sleep(20)
+	camera.stop_recording()
+	camera.stop_preview()
+	return;
+"</pre></code>
 		
-	<p> Or you can just download the files here <a href="Documentation/production test/cameraCode.py">cameraCode.py</a>
+	<p> Or you can just download the files here 
+	<br><a href="Documentation/production test/cameraCode.py">cameraCode.py</a>
 	<br><a href="Documentation/production test/alertnoise.py">alertnoise.py</a>
 	<br><a href="Documentation/production test/testDrive.py">testDrive.py</a></p>
 	
@@ -330,6 +336,8 @@
 	<iframe width="560" height="315" src="https://www.youtube.com/embed/-nUCVmVpQG4" frameborder="0" allowfullscreen=""></iframe>
 	
 	<p><b><H3>Reproducibility Based on Instructions</H3></b><br>
+		
+	<p>If there are things that I may not have clearly made here, you can also check my friend's build log @<a href="semjerome.github.io">SemJerome</a></p>
 </SECTION>
 	
  
@@ -344,8 +352,8 @@
 	</UL>
 	</NAV>
 	<p>Final power point presentation: <a href="Documentation/Final Presentation.pptx">Final Presentation.pptx</a> </p>
-	<p> Course knowledge utilized from previous courses </p>
-	<p> Internet programming, HTML <br> Electronic Devices and Circuits <br> Scripting </p>
+	<p>Course knowledge utilized from previous courses </p>
+	<p>Internet programming, HTML <br> Electronic Devices and Circuits <br> Scripting </p>
 </SECTION>
 	
 	
